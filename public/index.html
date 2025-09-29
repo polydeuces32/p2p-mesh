@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>P2P Mesh</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      background: #000000;
+      padding: 20px;
+      border-bottom: 3px solid #ff6b35;
+      text-align: center;
+    }
+    
+    .title {
+      font-size: 2.5em;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    
+    .p2p {
+      color: #ff6b35;
+      display: inline-block;
+      transform: rotate(-2deg);
+    }
+    
+    .mesh {
+      color: #4ecdc4;
+      display: inline-block;
+      transform: rotate(2deg);
+    }
+    
+    .status {
+      background: #4ecdc4;
+      color: #000;
+      padding: 8px 16px;
+      border-radius: 0;
+      font-weight: bold;
+      font-size: 0.9em;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 10px;
+      display: inline-block;
+    }
+    
+    .container {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 20px;
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    .control-panel {
+      background: #2a2a2a;
+      border: 2px solid #ff6b35;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .section {
+      background: #1e1e1e;
+      border: 1px solid #4ecdc4;
+      padding: 15px;
+    }
+    
+    .section-title {
+      color: #ff6b35;
+      font-size: 1.1em;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #4ecdc4;
+      padding-bottom: 5px;
+    }
+    
+    .input-group {
+      margin-bottom: 15px;
+    }
+    
+    .input-group label {
+      display: block;
+      color: #4ecdc4;
+      font-weight: bold;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      font-size: 0.9em;
+      letter-spacing: 0.5px;
+    }
+    
+    input[type="tel"], input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #4ecdc4;
+      background: #000;
+      color: #fff;
+      font-size: 1em;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    input[type="tel"]:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: #ff6b35;
+      box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+    }
+    
+    .btn {
+      background: #ff6b35;
+      color: #000;
+      border: none;
+      padding: 12px 20px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .btn:hover {
+      background: #4ecdc4;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    
+    .btn.secondary {
+      background: #4ecdc4;
+      color: #000;
+    }
+    
+    .btn.secondary:hover {
+      background: #ff6b35;
+    }
+    
+    .status-indicator {
+      padding: 8px 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 0.9em;
+    }
+    
+    .connected {
+      background: #4ecdc4;
+      color: #000;
+    }
+    
+    .disconnected {
+      background: #ff6b35;
+      color: #000;
+    }
+    
+    .chat-area {
+      background: #1e1e1e;
+      border: 2px solid #4ecdc4;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      border-bottom: 2px solid #4ecdc4;
+      min-height: 400px;
+      max-height: 500px;
+    }
+    
+    .message {
+      margin-bottom: 15px;
+      padding: 10px;
+      background: #2a2a2a;
+      border-left: 4px solid #ff6b35;
+    }
+    
+    .message-time {
+      color: #4ecdc4;
+      font-size: 0.8em;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .message-sender {
+      color: #ff6b35;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .message-content {
+      color: #fff;
+      margin-top: 5px;
+      font-weight: 500;
+    }
+    
+    .input-area {
+      padding: 20px;
+      background: #2a2a2a;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .message-input {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #4ecdc4;
+      background: #000;
+      color: #fff;
+      font-size: 1em;
+      font-weight: bold;
+    }
+    
+    .send-btn {
+      background: #ff6b35;
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .send-btn:hover {
+      background: #4ecdc4;
+      transform: translateY(-2px);
+    }
+    
+    .devices-list {
+      background: #1e1e1e;
+      border: 1px solid #4ecdc4;
+      padding: 10px;
+      margin-top: 10px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    
+    .device-item {
+      padding: 8px;
+      margin-bottom: 5px;
+      background: #2a2a2a;
+      border-left: 3px solid #4ecdc4;
+      font-size: 0.9em;
+    }
+    
+    .device-name {
+      color: #ff6b35;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    
+    .device-phone {
+      color: #4ecdc4;
+    }
+    
+    .device-signal {
+      color: #fff;
+      font-size: 0.8em;
+    }
+    
+    .vercel-badge {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #000;
+      color: #fff;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      text-decoration: none;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      
+      .title {
+        font-size: 2em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">
+      <span class="p2p">P2P</span> <span class="mesh">MESH</span>
+    </div>
+    <div class="status">ONLINE</div>
+  </div>
+  
+  <div class="container">
+    <div class="control-panel">
+      <div class="section">
+        <div class="section-title">Phone Setup</div>
+        <div class="input-group">
+          <label>Phone Number</label>
+          <input id="phoneInput" type="tel" placeholder="+1234567890">
+        </div>
+        <button class="btn" onclick="setPhoneNumber()">Set Phone</button>
+        <div id="phoneStatus" class="status-indicator disconnected">No phone set</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Global Network</div>
+        <button class="btn" onclick="connectToGlobal()">Connect Global</button>
+        <button class="btn secondary" onclick="disconnectFromGlobal()">Disconnect</button>
+        <div id="globalStatus" class="status-indicator disconnected">Not connected</div>
+        
+        <div class="devices-list" id="discoveredDevices"></div>
+      </div>
+    </div>
+    
+    <div class="chat-area">
+      <div id="messages" class="messages"></div>
+      <div class="input-area">
+        <input id="msgInput" type="text" class="message-input" placeholder="Type your message...">
+        <button class="send-btn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+  
+  <a href="https://vercel.com" class="vercel-badge">Deployed on Vercel</a>
+  
+  <script>
+    let ws = null;
+    let userPhone = null;
+    const messages = document.getElementById("messages");
+    const input = document.getElementById("msgInput");
+    const phoneInput = document.getElementById("phoneInput");
+    const phoneStatus = document.getElementById("phoneStatus");
+    const globalStatus = document.getElementById("globalStatus");
+    const discoveredDevices = document.getElementById("discoveredDevices");
+
+    // Phone number setup
+    function setPhoneNumber() {
+        const phone = phoneInput.value.trim();
+        if (phone && phone.length >= 10) {
+            userPhone = phone;
+            phoneStatus.textContent = `Phone: ${phone}`;
+            phoneStatus.className = "status-indicator connected";
+            console.log("Phone number set:", phone);
+        } else {
+            alert("Please enter a valid phone number");
+        }
+    }
+
+    // Global connection
+    function connectToGlobal() {
+        if (!userPhone) {
+            alert("Please set your phone number first");
+            return;
+        }
+        
+        // Use Vercel WebSocket URL
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws`;
+        
+        ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+            globalStatus.textContent = "Connected to Global Network";
+            globalStatus.className = "status-indicator connected";
+            
+            // Register with phone number
+            ws.send(JSON.stringify({
+                type: "register",
+                phone: userPhone
+            }));
+            
+            addSystemMessage("Connected to global P2P Mesh network");
+            simulateDeviceDiscovery();
+        };
+        
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            
+            if (data.sender_phone || data.sender) {
+                displayMessage(data);
+            }
+        };
+        
+        ws.onclose = () => {
+            globalStatus.textContent = "Disconnected";
+            globalStatus.className = "status-indicator disconnected";
+            addSystemMessage("Disconnected from global network");
+        };
+        
+        ws.onerror = (error) => {
+            console.error("WebSocket error:", error);
+            globalStatus.textContent = "Connection Error";
+            globalStatus.className = "status-indicator disconnected";
+        };
+    }
+    
+    function disconnectFromGlobal() {
+        if (ws) {
+            ws.close();
+            ws = null;
+        }
+    }
+
+    function simulateDeviceDiscovery() {
+        const mockDevices = [
+            { name: "iPhone 15", phone: "+1234567890", rssi: -45 },
+            { name: "Samsung Galaxy", phone: "+1987654321", rssi: -52 },
+            { name: "Pixel 8", phone: "+1555123456", rssi: -38 }
+        ];
+        
+        discoveredDevices.innerHTML = mockDevices.map(device => 
+            `<div class="device-item">
+                <div class="device-name">${device.name}</div>
+                <div class="device-phone">${device.phone}</div>
+                <div class="device-signal">Signal: ${device.rssi}dBm</div>
+            </div>`
+        ).join('');
+    }
+
+    function displayMessage(msg) {
+        const el = document.createElement("div");
+        el.className = "message";
+        
+        const timestamp = new Date(msg.timestamp * 1000).toLocaleTimeString();
+        const senderPhone = msg.sender_phone || msg.sender;
+        
+        el.innerHTML = `
+            <div class="message-time">[${timestamp}]</div>
+            <div class="message-sender">${senderPhone}</div>
+            <div class="message-content">${msg.payload}</div>
+        `;
+        
+        messages.appendChild(el);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Send message function
+    function sendMessage() {
+        if (!userPhone) {
+            alert("Please set your phone number first");
+            return;
+        }
+        
+        if (!ws) {
+            alert("Please connect to global network first");
+            return;
+        }
+        
+        if (!input.value.trim()) return;
+        
+        const msg = {
+            version: "0.1",
+            timestamp: Math.floor(Date.now() / 1000),
+            ttl: 300,
+            sender: userPhone,
+            sender_phone: userPhone,
+            recipient: null,
+            payload: input.value
+        };
+        
+        ws.send(JSON.stringify(msg));
+        input.value = "";
+    }
+
+    // Enter key support
+    input.addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+            sendMessage();
+        }
+    });
+
+    // Add system messages
+    function addSystemMessage(text) {
+        const el = document.createElement("div");
+        el.className = "message";
+        el.style.borderLeftColor = "#4ecdc4";
+        el.innerHTML = `
+            <div class="message-time">[SYSTEM]</div>
+            <div class="message-content" style="color: #4ecdc4; font-style: italic;">${text}</div>
+        `;
+        messages.appendChild(el);
+        messages.scrollTop = messages.scrollHeight;
+    }
+  </script>
+</body>
+</html>
