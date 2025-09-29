@@ -93,9 +93,12 @@ async def get_users():
 # Serve static files
 @app.get("/{path:path}")
 async def serve_static(path: str):
-    if path == "" or path == "/":
+    if path == "" or path == "/" or path == "index.html":
         return FileResponse("public/index.html")
-    return FileResponse(f"public/{path}")
+    try:
+        return FileResponse(f"public/{path}")
+    except:
+        return FileResponse("public/index.html")
 
 if __name__ == "__main__":
     import uvicorn
