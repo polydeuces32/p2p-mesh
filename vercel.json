@@ -5,20 +5,12 @@
     {
       "src": "api/main.py",
       "use": "@vercel/python"
-    },
-    {
-      "src": "api/relay.py",
-      "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "/api/main.py"
-    },
-    {
-      "src": "/relay/(.*)",
-      "dest": "/api/relay.py"
     },
     {
       "src": "/ws",
@@ -31,13 +23,5 @@
   ],
   "env": {
     "PYTHONPATH": "."
-  },
-  "functions": {
-    "api/main.py": {
-      "maxDuration": 30
-    },
-    "api/relay.py": {
-      "maxDuration": 30
-    }
   }
 }
