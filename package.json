@@ -1,0 +1,13 @@
+{
+  "name": "p2p-mesh",
+  "version": "1.0.0",
+  "description": "P2P Mesh - Decentralized messaging app",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Static site - no build needed'",
+    "start": "echo 'Static site - no start needed'"
+  },
+  "keywords": ["p2p", "messaging", "decentralized", "websocket"],
+  "author": "GiancarloV",
+  "license": "MIT"
+}

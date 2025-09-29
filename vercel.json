@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "p2p-mesh",
   "builds": [
     {
       "src": "api/main.py",
@@ -17,15 +16,8 @@
       "dest": "/api/main.py"
     },
     {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "/index.html"
     }
-  ],
-  "env": {
-    "PYTHONPATH": "."
-  }
+  ]
 }
