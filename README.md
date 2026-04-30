@@ -1,110 +1,130 @@
-# P2P Mesh - Vercel Deployment
+# P2P Mesh v2
 
-A decentralized messaging application with Bauhaus design, deployed on Vercel.
+A decentralized-ready browser messenger using WebRTC DataChannels for direct peer-to-peer messaging and FastAPI WebSockets only for signaling.
 
-## 🚀 Live Demo
+Live demo: https://p2p-mesh.vercel.app
 
-**Deployed on Vercel**: [https://p2p-mesh.vercel.app](https://p2p-mesh.vercel.app)
+## Current Status
 
-## 🎨 Features
+P2P Mesh v2 is no longer a basic WebSocket broadcast chat. The server is now a signaling layer. Chat messages are intended to move directly between browsers over WebRTC after peers connect.
 
-- **Bauhaus Design**: Clean, functional interface
-- **P2P Messaging**: Real-time peer-to-peer communication
-- **Phone Number IDs**: User identification system
-- **Global Network**: Worldwide messaging via Vercel
-- **WebSocket Support**: Real-time bidirectional communication
-- **Mobile Responsive**: Works on all devices
+## What Works Now
 
-## 🛠️ Tech Stack
+- WebRTC direct browser-to-browser messaging
+- FastAPI WebSocket signaling server
+- Peer ID registration
+- Live peer presence
+- Offer / answer / ICE candidate routing
+- Direct RTCDataChannel chat payloads
+- No persistent message storage
+- Mobile-responsive browser UI
 
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Backend**: FastAPI, Python
-- **Deployment**: Vercel
-- **WebSocket**: Real-time communication
-- **Design**: Bauhaus principles
+## What Is Not Supported Yet
 
-## 📱 Usage
+- Bluetooth messaging
+- Native iOS app
+- Native Android app
+- Multi-hop mesh forwarding
+- Public/private key identity
+- App-level end-to-end encryption
+- TURN relay fallback for strict NAT networks
+- Production authentication
 
-1. **Set Phone Number**: Enter your phone number (e.g., +1234567890)
-2. **Connect Global**: Click "Connect Global" to join the network
-3. **Send Messages**: Type and send messages to connected users
-4. **Real-time**: Messages appear instantly across all connected devices
+## Network Model
 
-## 🔧 Local Development
+```text
+Browser A ── WebSocket signaling ── FastAPI ── WebSocket signaling ── Browser B
+
+After negotiation:
+
+Browser A ───────────── WebRTC RTCDataChannel ───────────── Browser B
+```
+
+The FastAPI server should exchange only signaling messages:
+
+- `register`
+- `presence`
+- `offer`
+- `answer`
+- `ice-candidate`
+- `ping` / `pong`
+
+Chat payloads should move over the direct WebRTC data channel.
+
+## Tech Stack
+
+- Frontend: HTML5, CSS3, JavaScript
+- Peer transport: WebRTC RTCDataChannel
+- Signaling: FastAPI WebSocket
+- Backend: Python, FastAPI, Uvicorn
+- Deployment: Vercel
+- NAT traversal: STUN only for now
+
+## Local Development
 
 ```bash
-# Clone the repository
 git clone https://github.com/polydeuces32/p2p-mesh.git
 cd p2p-mesh
-
-# Install dependencies
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-
-# Run locally
 python api/main.py
 ```
 
-## 🌐 Vercel Deployment
+Open:
 
-### Automatic Deployment
-1. Fork this repository
-2. Connect to Vercel
-3. Deploy automatically
-
-### Manual Deployment
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel --prod
+```text
+http://localhost:8000
 ```
 
-## 📊 API Endpoints
+## Testing
 
-- `GET /` - Main application
-- `GET /health` - Health check
-- `GET /users` - Active users
-- `WebSocket /ws` - Real-time messaging
+Use two browser windows, two browsers, or two devices.
 
-## 🎯 Architecture
+1. Open the app in both clients.
+2. Set a different Peer ID in each client.
+3. Click `Connect` on both clients.
+4. Select the other peer from the live peer list.
+5. Click `Open P2P Channel`.
+6. Send a message.
 
+## Security Notes
+
+This is an early prototype. Do not treat it as production-secure yet.
+
+Current security limitations:
+
+- Peer IDs are user-entered and not verified.
+- There is no public/private key identity yet.
+- There is no app-level message signing yet.
+- CORS is open for development.
+- STUN is configured, but TURN fallback is not.
+
+## Bluetooth Direction
+
+This browser app does not send messages through Bluetooth devices.
+
+Bluetooth mesh requires a separate native layer:
+
+- iOS: Swift + CoreBluetooth
+- Android: Kotlin + Bluetooth LE
+- Shared packet protocol
+- Local encrypted identity
+- Offline relay / forwarding rules
+
+The browser WebRTC version should remain the internet/direct-browser transport. Bluetooth should be treated as a future native mobile module.
+
+## Project Direction
+
+The strongest product path is:
+
+```text
+v2: WebRTC direct messaging
+v3: cryptographic identity + message signing
+v4: multi-peer mesh forwarding
+v5: native Bluetooth offline mode
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Vercel API    │    │   WebSocket     │
-│   (HTML/CSS/JS) │◄──►│   (FastAPI)     │◄──►│   (Real-time)   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
 
-## 🔒 Security
+## Author
 
-- **CORS Enabled**: Cross-origin requests allowed
-- **WebSocket Security**: Secure real-time communication
-- **Input Validation**: Phone number validation
-- **No Data Storage**: Messages not permanently stored
-
-## 📈 Performance
-
-- **Vercel Edge**: Global CDN distribution
-- **WebSocket**: Low-latency communication
-- **Responsive**: Mobile-first design
-- **Fast Loading**: Optimized assets
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## 📄 License
-
-MIT License - see LICENSE file for details
-
-## 👨‍💻 Author
-
-**GiancarloV** - [@polydeuces32](https://github.com/polydeuces32)
-
----
-
-**P2P Mesh** - Decentralized communication for the modern world 🌍📱
+GiancarloV — https://github.com/polydeuces32
