@@ -377,7 +377,11 @@
             alert("Please set your phone number first");
             return;
         }
-        
+
+        if (ws && ws.readyState !== WebSocket.CLOSED) {
+            return;
+        }
+
         // Use Vercel WebSocket URL
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -445,16 +449,26 @@
     function displayMessage(msg) {
         const el = document.createElement("div");
         el.className = "message";
-        
+
         const timestamp = new Date(msg.timestamp * 1000).toLocaleTimeString();
         const senderPhone = msg.sender_phone || msg.sender;
-        
-        el.innerHTML = `
-            <div class="message-time">[${timestamp}]</div>
-            <div class="message-sender">${senderPhone}</div>
-            <div class="message-content">${msg.payload}</div>
-        `;
-        
+
+        const timeEl = document.createElement("div");
+        timeEl.className = "message-time";
+        timeEl.textContent = `[${timestamp}]`;
+
+        const senderEl = document.createElement("div");
+        senderEl.className = "message-sender";
+        senderEl.textContent = senderPhone;
+
+        const contentEl = document.createElement("div");
+        contentEl.className = "message-content";
+        contentEl.textContent = msg.payload;
+
+        el.appendChild(timeEl);
+        el.appendChild(senderEl);
+        el.appendChild(contentEl);
+
         messages.appendChild(el);
         messages.scrollTop = messages.scrollHeight;
     }
@@ -499,10 +513,19 @@
         const el = document.createElement("div");
         el.className = "message";
         el.style.borderLeftColor = "#4ecdc4";
-        el.innerHTML = `
-            <div class="message-time">[SYSTEM]</div>
-            <div class="message-content" style="color: #4ecdc4; font-style: italic;">${text}</div>
-        `;
+
+        const timeEl = document.createElement("div");
+        timeEl.className = "message-time";
+        timeEl.textContent = "[SYSTEM]";
+
+        const contentEl = document.createElement("div");
+        contentEl.className = "message-content";
+        contentEl.style.color = "#4ecdc4";
+        contentEl.style.fontStyle = "italic";
+        contentEl.textContent = text;
+
+        el.appendChild(timeEl);
+        el.appendChild(contentEl);
         messages.appendChild(el);
         messages.scrollTop = messages.scrollHeight;
     }

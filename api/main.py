@@ -1,8 +1,8 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import json
+import os
 import time
 import asyncio
 from typing import List
@@ -19,7 +19,6 @@ app.add_middleware(
 )
 
 # Store active connections
-clients: List[WebSocket] = []
 user_sessions = {}
 
 class ConnectionManager:
@@ -37,11 +36,10 @@ class ConnectionManager:
         await websocket.send_text(message)
 
     async def broadcast(self, message: str):
-        for connection in self.active_connections:
+        for connection in list(self.active_connections):
             try:
                 await connection.send_text(message)
             except:
-                # Remove disconnected clients
                 if connection in self.active_connections:
                     self.active_connections.remove(connection)
 
@@ -61,12 +59,16 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            message = json.loads(data)
+            try:
+                message = json.loads(data)
+            except json.JSONDecodeError:
+                continue
             
-            # Store user phone number if provided
-            if 'sender_phone' in message:
-                user_sessions[message['sender_phone']] = websocket
-                print(f"User {message['sender_phone']} connected")
+            # Store user phone number if provided (support both register and message formats)
+            phone_id = message.get('sender_phone') or message.get('phone')
+            if phone_id:
+                user_sessions[phone_id] = websocket
+                print(f"User {phone_id} connected")
             
             # Add connection info to message
             message['connection_count'] = len(manager.active_connections)
@@ -93,12 +95,12 @@ async def get_users():
 # Serve static files
 @app.get("/{path:path}")
 async def serve_static(path: str):
-    if path == "" or path == "/" or path == "index.html":
+    if not path or path == "index.html":
         return FileResponse("public/index.html")
-    try:
-        return FileResponse(f"public/{path}")
-    except:
-        return FileResponse("public/index.html")
+    file_path = f"public/{path}"
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    return FileResponse("public/index.html")
 
 if __name__ == "__main__":
     import uvicorn
