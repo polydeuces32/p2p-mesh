@@ -1,511 +1,619 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>P2P Mesh</title>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P2P Mesh v2</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-      color: #ffffff;
+      font-family: Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #111 0%, #252525 100%);
+      color: #fff;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
-    
+
     .header {
-      background: #000000;
+      background: #000;
       padding: 20px;
       border-bottom: 3px solid #ff6b35;
       text-align: center;
     }
-    
+
     .title {
-      font-size: 2.5em;
+      font-size: 2.4rem;
       font-weight: 900;
       letter-spacing: 2px;
       text-transform: uppercase;
     }
-    
-    .p2p {
-      color: #ff6b35;
+
+    .p2p { color: #ff6b35; display: inline-block; transform: rotate(-2deg); }
+    .mesh { color: #4ecdc4; display: inline-block; transform: rotate(2deg); }
+
+    .subtitle {
       display: inline-block;
-      transform: rotate(-2deg);
-    }
-    
-    .mesh {
-      color: #4ecdc4;
-      display: inline-block;
-      transform: rotate(2deg);
-    }
-    
-    .status {
+      margin-top: 10px;
+      padding: 8px 14px;
       background: #4ecdc4;
       color: #000;
-      padding: 8px 16px;
-      border-radius: 0;
-      font-weight: bold;
-      font-size: 0.9em;
+      font-weight: 800;
       letter-spacing: 1px;
       text-transform: uppercase;
-      margin-top: 10px;
-      display: inline-block;
+      font-size: 0.85rem;
     }
-    
+
     .container {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 2fr;
+      grid-template-columns: minmax(280px, 420px) 1fr;
       gap: 20px;
       padding: 20px;
+      width: 100%;
       max-width: 1400px;
       margin: 0 auto;
-      width: 100%;
     }
-    
-    .control-panel {
-      background: #2a2a2a;
-      border: 2px solid #ff6b35;
-      padding: 20px;
+
+    .panel, .chat-area {
+      background: #1e1e1e;
+      border: 2px solid #4ecdc4;
+    }
+
+    .panel {
+      border-color: #ff6b35;
+      padding: 18px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
-    
+
     .section {
-      background: #1e1e1e;
+      background: #151515;
       border: 1px solid #4ecdc4;
-      padding: 15px;
+      padding: 14px;
     }
-    
+
     .section-title {
       color: #ff6b35;
-      font-size: 1.1em;
-      font-weight: bold;
+      font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 15px;
       border-bottom: 2px solid #4ecdc4;
-      padding-bottom: 5px;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
     }
-    
-    .input-group {
-      margin-bottom: 15px;
-    }
-    
-    .input-group label {
+
+    label {
       display: block;
       color: #4ecdc4;
-      font-weight: bold;
-      margin-bottom: 5px;
+      font-weight: 800;
       text-transform: uppercase;
-      font-size: 0.9em;
+      font-size: 0.82rem;
       letter-spacing: 0.5px;
+      margin-bottom: 6px;
     }
-    
-    input[type="tel"], input[type="text"] {
+
+    input, select {
       width: 100%;
       padding: 12px;
       border: 2px solid #4ecdc4;
       background: #000;
       color: #fff;
-      font-size: 1em;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 10px;
     }
-    
-    input[type="tel"]:focus, input[type="text"]:focus {
+
+    input:focus, select:focus {
       outline: none;
       border-color: #ff6b35;
-      box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
     }
-    
+
     .btn {
       background: #ff6b35;
       color: #000;
-      border: none;
-      padding: 12px 20px;
-      font-weight: bold;
+      border: 0;
+      padding: 12px 14px;
+      font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 1px;
       cursor: pointer;
-      transition: all 0.3s ease;
-      margin-right: 10px;
-      margin-bottom: 10px;
+      margin: 0 8px 8px 0;
     }
-    
-    .btn:hover {
-      background: #4ecdc4;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    }
-    
-    .btn.secondary {
-      background: #4ecdc4;
-      color: #000;
-    }
-    
-    .btn.secondary:hover {
-      background: #ff6b35;
-    }
-    
+
+    .btn:hover { background: #4ecdc4; }
+    .btn.secondary { background: #4ecdc4; }
+    .btn.secondary:hover { background: #ff6b35; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
     .status-indicator {
-      padding: 8px 12px;
-      font-weight: bold;
+      padding: 8px 10px;
+      font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 1px;
-      font-size: 0.9em;
+      font-size: 0.82rem;
+      margin-top: 6px;
     }
-    
-    .connected {
-      background: #4ecdc4;
-      color: #000;
-    }
-    
-    .disconnected {
-      background: #ff6b35;
-      color: #000;
-    }
-    
-    .chat-area {
-      background: #1e1e1e;
-      border: 2px solid #4ecdc4;
+
+    .connected { background: #4ecdc4; color: #000; }
+    .disconnected { background: #ff6b35; color: #000; }
+
+    .peer-list {
+      max-height: 210px;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
+      gap: 8px;
     }
-    
+
+    .peer-item {
+      background: #252525;
+      border-left: 4px solid #4ecdc4;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .peer-id {
+      color: #fff;
+      font-weight: 800;
+      word-break: break-all;
+    }
+
+    .peer-state {
+      color: #4ecdc4;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 900;
+    }
+
+    .chat-area {
+      display: flex;
+      flex-direction: column;
+      min-height: 520px;
+    }
+
     .messages {
       flex: 1;
-      padding: 20px;
+      padding: 18px;
       overflow-y: auto;
       border-bottom: 2px solid #4ecdc4;
-      min-height: 400px;
-      max-height: 500px;
+      max-height: 600px;
     }
-    
+
     .message {
-      margin-bottom: 15px;
-      padding: 10px;
-      background: #2a2a2a;
+      background: #292929;
       border-left: 4px solid #ff6b35;
+      padding: 10px;
+      margin-bottom: 12px;
     }
-    
+
+    .message.system { border-left-color: #4ecdc4; }
+    .message.local { border-left-color: #ff6b35; }
+    .message.remote { border-left-color: #4ecdc4; }
+
     .message-time {
       color: #4ecdc4;
-      font-size: 0.8em;
-      font-weight: bold;
+      font-size: 0.75rem;
+      font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
-    
+
     .message-sender {
       color: #ff6b35;
-      font-weight: bold;
+      font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 1px;
+      margin-top: 4px;
     }
-    
-    .message-content {
-      color: #fff;
-      margin-top: 5px;
-      font-weight: 500;
-    }
-    
+
+    .message-content { margin-top: 6px; line-height: 1.4; }
+
     .input-area {
-      padding: 20px;
-      background: #2a2a2a;
       display: flex;
       gap: 10px;
+      padding: 18px;
+      background: #252525;
     }
-    
-    .message-input {
-      flex: 1;
-      padding: 12px;
-      border: 2px solid #4ecdc4;
-      background: #000;
-      color: #fff;
-      font-size: 1em;
-      font-weight: bold;
+
+    .input-area input { margin-bottom: 0; }
+    .send-btn { min-width: 110px; }
+
+    .note {
+      font-size: 0.82rem;
+      color: #ddd;
+      line-height: 1.45;
     }
-    
-    .send-btn {
-      background: #ff6b35;
-      color: #000;
-      border: none;
-      padding: 12px 24px;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .send-btn:hover {
-      background: #4ecdc4;
-      transform: translateY(-2px);
-    }
-    
-    .devices-list {
-      background: #1e1e1e;
-      border: 1px solid #4ecdc4;
-      padding: 10px;
-      margin-top: 10px;
-      max-height: 150px;
-      overflow-y: auto;
-    }
-    
-    .device-item {
-      padding: 8px;
-      margin-bottom: 5px;
-      background: #2a2a2a;
-      border-left: 3px solid #4ecdc4;
-      font-size: 0.9em;
-    }
-    
-    .device-name {
-      color: #ff6b35;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-    
-    .device-phone {
-      color: #4ecdc4;
-    }
-    
-    .device-signal {
-      color: #fff;
-      font-size: 0.8em;
-    }
-    
-    .vercel-badge {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #000;
-      color: #fff;
-      padding: 10px;
-      border-radius: 5px;
-      font-size: 12px;
-      text-decoration: none;
-    }
-    
-    @media (max-width: 768px) {
-      .container {
-        grid-template-columns: 1fr;
-      }
-      
-      .title {
-        font-size: 2em;
-      }
+
+    code { color: #4ecdc4; }
+
+    @media (max-width: 800px) {
+      .container { grid-template-columns: 1fr; }
+      .title { font-size: 2rem; }
+      .input-area { flex-direction: column; }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="title">
-      <span class="p2p">P2P</span> <span class="mesh">MESH</span>
-    </div>
-    <div class="status">ONLINE</div>
-  </div>
-  
-  <div class="container">
-    <div class="control-panel">
-      <div class="section">
-        <div class="section-title">Phone Setup</div>
-        <div class="input-group">
-          <label>Phone Number</label>
-          <input id="phoneInput" type="tel" placeholder="+1234567890">
-        </div>
-        <button class="btn" onclick="setPhoneNumber()">Set Phone</button>
-        <div id="phoneStatus" class="status-indicator disconnected">No phone set</div>
-      </div>
-      
-      <div class="section">
-        <div class="section-title">Global Network</div>
-        <button class="btn" onclick="connectToGlobal()">Connect Global</button>
-        <button class="btn secondary" onclick="disconnectFromGlobal()">Disconnect</button>
-        <div id="globalStatus" class="status-indicator disconnected">Not connected</div>
-        
-        <div class="devices-list" id="discoveredDevices"></div>
-      </div>
-    </div>
-    
-    <div class="chat-area">
+  <header class="header">
+    <div class="title"><span class="p2p">P2P</span> <span class="mesh">MESH</span></div>
+    <div class="subtitle">v2 WebRTC Direct Messaging</div>
+  </header>
+
+  <main class="container">
+    <aside class="panel">
+      <section class="section">
+        <div class="section-title">Peer Identity</div>
+        <label for="peerInput">Peer ID</label>
+        <input id="peerInput" type="text" placeholder="example: giancarlo-node-1">
+        <button class="btn" onclick="setPeerId()">Set ID</button>
+        <button class="btn secondary" onclick="generatePeerId()">Generate</button>
+        <div id="peerStatus" class="status-indicator disconnected">No peer ID set</div>
+      </section>
+
+      <section class="section">
+        <div class="section-title">Signaling Network</div>
+        <button class="btn" onclick="connectSignaling()">Connect</button>
+        <button class="btn secondary" onclick="disconnectSignaling()">Disconnect</button>
+        <div id="signalStatus" class="status-indicator disconnected">Offline</div>
+      </section>
+
+      <section class="section">
+        <div class="section-title">Live Peers</div>
+        <div id="peerList" class="peer-list"></div>
+      </section>
+
+      <section class="section">
+        <div class="section-title">Direct Channel</div>
+        <label for="targetPeer">Target Peer</label>
+        <select id="targetPeer"></select>
+        <button class="btn" onclick="connectToPeer()">Open P2P Channel</button>
+        <div id="channelStatus" class="status-indicator disconnected">No direct channel</div>
+        <p class="note">The server only exchanges WebRTC offer, answer, and ICE messages. Chat payloads move over the browser-to-browser data channel when connected.</p>
+      </section>
+    </aside>
+
+    <section class="chat-area">
       <div id="messages" class="messages"></div>
       <div class="input-area">
-        <input id="msgInput" type="text" class="message-input" placeholder="Type your message...">
-        <button class="send-btn" onclick="sendMessage()">Send</button>
+        <input id="msgInput" type="text" placeholder="Type a direct peer message...">
+        <button id="sendBtn" class="btn send-btn" onclick="sendMessage()">Send</button>
       </div>
-    </div>
-  </div>
-  
-  <a href="https://vercel.com" class="vercel-badge">Deployed on Vercel</a>
-  
+    </section>
+  </main>
+
   <script>
     let ws = null;
-    let userPhone = null;
+    let peerId = localStorage.getItem("p2p_mesh_peer_id") || "";
+    let peers = [];
+    let selectedPeer = "";
+    let pc = null;
+    let dataChannel = null;
+    let connectedPeer = "";
+
+    const iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
+
+    const peerInput = document.getElementById("peerInput");
+    const peerStatus = document.getElementById("peerStatus");
+    const signalStatus = document.getElementById("signalStatus");
+    const channelStatus = document.getElementById("channelStatus");
+    const peerList = document.getElementById("peerList");
+    const targetPeer = document.getElementById("targetPeer");
     const messages = document.getElementById("messages");
     const input = document.getElementById("msgInput");
-    const phoneInput = document.getElementById("phoneInput");
-    const phoneStatus = document.getElementById("phoneStatus");
-    const globalStatus = document.getElementById("globalStatus");
-    const discoveredDevices = document.getElementById("discoveredDevices");
 
-    // Phone number setup
-    function setPhoneNumber() {
-        const phone = phoneInput.value.trim();
-        if (phone && phone.length >= 10) {
-            userPhone = phone;
-            phoneStatus.textContent = `Phone: ${phone}`;
-            phoneStatus.className = "status-indicator connected";
-            console.log("Phone number set:", phone);
-        } else {
-            alert("Please enter a valid phone number");
+    if (peerId) {
+      peerInput.value = peerId;
+      renderPeerStatus();
+    }
+
+    function generatePeerId() {
+      peerInput.value = `peer-${crypto.randomUUID().slice(0, 8)}`;
+      setPeerId();
+    }
+
+    function setPeerId() {
+      const value = peerInput.value.trim();
+      if (!value || value.length < 3) {
+        alert("Peer ID must be at least 3 characters.");
+        return;
+      }
+      peerId = value;
+      localStorage.setItem("p2p_mesh_peer_id", peerId);
+      renderPeerStatus();
+      addSystemMessage(`Peer ID set: ${peerId}`);
+    }
+
+    function renderPeerStatus() {
+      if (peerId) {
+        peerStatus.textContent = `Peer: ${peerId}`;
+        peerStatus.className = "status-indicator connected";
+      } else {
+        peerStatus.textContent = "No peer ID set";
+        peerStatus.className = "status-indicator disconnected";
+      }
+    }
+
+    function connectSignaling() {
+      if (!peerId) {
+        alert("Set a peer ID first.");
+        return;
+      }
+
+      if (ws && ws.readyState === WebSocket.OPEN) return;
+
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        signalStatus.textContent = "Connected to signaling";
+        signalStatus.className = "status-indicator connected";
+        sendSignal({ type: "register", peer_id: peerId });
+        addSystemMessage("Connected to signaling server.");
+      };
+
+      ws.onmessage = async (event) => {
+        const message = JSON.parse(event.data);
+        await handleSignal(message);
+      };
+
+      ws.onclose = () => {
+        signalStatus.textContent = "Offline";
+        signalStatus.className = "status-indicator disconnected";
+        addSystemMessage("Disconnected from signaling server.");
+      };
+
+      ws.onerror = () => {
+        signalStatus.textContent = "Signal error";
+        signalStatus.className = "status-indicator disconnected";
+      };
+    }
+
+    function disconnectSignaling() {
+      if (ws) ws.close();
+      ws = null;
+      closePeerConnection();
+    }
+
+    function sendSignal(payload) {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        addSystemMessage("Signaling is not connected.");
+        return;
+      }
+      ws.send(JSON.stringify(payload));
+    }
+
+    async function handleSignal(message) {
+      switch (message.type) {
+        case "registered":
+        case "presence":
+          peers = (message.peers || []).filter((id) => id !== peerId);
+          renderPeers();
+          break;
+        case "offer":
+          await handleOffer(message);
+          break;
+        case "answer":
+          await handleAnswer(message);
+          break;
+        case "ice-candidate":
+          await handleIceCandidate(message);
+          break;
+        case "error":
+          addSystemMessage(`Signal error: ${message.error}`);
+          break;
+        default:
+          console.log("Unknown signal", message);
+      }
+    }
+
+    function renderPeers() {
+      targetPeer.innerHTML = "";
+
+      if (!peers.length) {
+        peerList.innerHTML = `<div class="peer-item"><span class="peer-id">No peers online</span></div>`;
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "No peers online";
+        targetPeer.appendChild(option);
+        return;
+      }
+
+      peerList.innerHTML = peers.map((id) => {
+        const state = id === connectedPeer ? "connected" : "available";
+        return `<div class="peer-item"><span class="peer-id">${escapeHtml(id)}</span><span class="peer-state">${state}</span></div>`;
+      }).join("");
+
+      peers.forEach((id) => {
+        const option = document.createElement("option");
+        option.value = id;
+        option.textContent = id;
+        targetPeer.appendChild(option);
+      });
+    }
+
+    async function connectToPeer() {
+      selectedPeer = targetPeer.value;
+      if (!selectedPeer) {
+        alert("No target peer selected.");
+        return;
+      }
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        alert("Connect signaling first.");
+        return;
+      }
+
+      closePeerConnection();
+      setupPeerConnection(selectedPeer, true);
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      sendSignal({ type: "offer", to: selectedPeer, sdp: offer });
+      addSystemMessage(`Sent WebRTC offer to ${selectedPeer}.`);
+    }
+
+    function setupPeerConnection(remotePeer, isInitiator) {
+      connectedPeer = remotePeer;
+      pc = new RTCPeerConnection({ iceServers });
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          sendSignal({ type: "ice-candidate", to: remotePeer, candidate: event.candidate });
         }
+      };
+
+      pc.onconnectionstatechange = () => {
+        channelStatus.textContent = `WebRTC: ${pc.connectionState}`;
+        channelStatus.className = pc.connectionState === "connected" ? "status-indicator connected" : "status-indicator disconnected";
+        renderPeers();
+      };
+
+      pc.ondatachannel = (event) => {
+        dataChannel = event.channel;
+        bindDataChannel(remotePeer);
+      };
+
+      if (isInitiator) {
+        dataChannel = pc.createDataChannel("p2p-chat");
+        bindDataChannel(remotePeer);
+      }
     }
 
-    // Global connection
-    function connectToGlobal() {
-        if (!userPhone) {
-            alert("Please set your phone number first");
-            return;
-        }
-        
-        // Use Vercel WebSocket URL
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws`;
-        
-        ws = new WebSocket(wsUrl);
-        
-        ws.onopen = () => {
-            globalStatus.textContent = "Connected to Global Network";
-            globalStatus.className = "status-indicator connected";
-            
-            // Register with phone number
-            ws.send(JSON.stringify({
-                type: "register",
-                phone: userPhone
-            }));
-            
-            addSystemMessage("Connected to global P2P Mesh network");
-            simulateDeviceDiscovery();
-        };
-        
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            
-            if (data.sender_phone || data.sender) {
-                displayMessage(data);
-            }
-        };
-        
-        ws.onclose = () => {
-            globalStatus.textContent = "Disconnected";
-            globalStatus.className = "status-indicator disconnected";
-            addSystemMessage("Disconnected from global network");
-        };
-        
-        ws.onerror = (error) => {
-            console.error("WebSocket error:", error);
-            globalStatus.textContent = "Connection Error";
-            globalStatus.className = "status-indicator disconnected";
-        };
-    }
-    
-    function disconnectFromGlobal() {
-        if (ws) {
-            ws.close();
-            ws = null;
-        }
+    function bindDataChannel(remotePeer) {
+      dataChannel.onopen = () => {
+        connectedPeer = remotePeer;
+        channelStatus.textContent = `Direct channel: ${remotePeer}`;
+        channelStatus.className = "status-indicator connected";
+        addSystemMessage(`Direct P2P channel open with ${remotePeer}.`);
+        renderPeers();
+      };
+
+      dataChannel.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        addMessage(message.from || remotePeer, message.payload, "remote");
+      };
+
+      dataChannel.onclose = () => {
+        channelStatus.textContent = "Direct channel closed";
+        channelStatus.className = "status-indicator disconnected";
+        addSystemMessage("Direct P2P channel closed.");
+      };
+
+      dataChannel.onerror = () => {
+        channelStatus.textContent = "Direct channel error";
+        channelStatus.className = "status-indicator disconnected";
+      };
     }
 
-    function simulateDeviceDiscovery() {
-        const mockDevices = [
-            { name: "iPhone 15", phone: "+1234567890", rssi: -45 },
-            { name: "Samsung Galaxy", phone: "+1987654321", rssi: -52 },
-            { name: "Pixel 8", phone: "+1555123456", rssi: -38 }
-        ];
-        
-        discoveredDevices.innerHTML = mockDevices.map(device => 
-            `<div class="device-item">
-                <div class="device-name">${device.name}</div>
-                <div class="device-phone">${device.phone}</div>
-                <div class="device-signal">Signal: ${device.rssi}dBm</div>
-            </div>`
-        ).join('');
+    async function handleOffer(message) {
+      const remotePeer = message.from;
+      closePeerConnection();
+      setupPeerConnection(remotePeer, false);
+
+      await pc.setRemoteDescription(new RTCSessionDescription(message.sdp));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      sendSignal({ type: "answer", to: remotePeer, sdp: answer });
+      addSystemMessage(`Accepted WebRTC offer from ${remotePeer}.`);
     }
 
-    function displayMessage(msg) {
-        const el = document.createElement("div");
-        el.className = "message";
-        
-        const timestamp = new Date(msg.timestamp * 1000).toLocaleTimeString();
-        const senderPhone = msg.sender_phone || msg.sender;
-        
-        el.innerHTML = `
-            <div class="message-time">[${timestamp}]</div>
-            <div class="message-sender">${senderPhone}</div>
-            <div class="message-content">${msg.payload}</div>
-        `;
-        
-        messages.appendChild(el);
-        messages.scrollTop = messages.scrollHeight;
+    async function handleAnswer(message) {
+      if (!pc) return;
+      await pc.setRemoteDescription(new RTCSessionDescription(message.sdp));
+      addSystemMessage(`Received WebRTC answer from ${message.from}.`);
     }
 
-    // Send message function
+    async function handleIceCandidate(message) {
+      if (!pc || !message.candidate) return;
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+      } catch (error) {
+        addSystemMessage("Failed to add ICE candidate.");
+      }
+    }
+
     function sendMessage() {
-        if (!userPhone) {
-            alert("Please set your phone number first");
-            return;
-        }
-        
-        if (!ws) {
-            alert("Please connect to global network first");
-            return;
-        }
-        
-        if (!input.value.trim()) return;
-        
-        const msg = {
-            version: "0.1",
-            timestamp: Math.floor(Date.now() / 1000),
-            ttl: 300,
-            sender: userPhone,
-            sender_phone: userPhone,
-            recipient: null,
-            payload: input.value
-        };
-        
-        ws.send(JSON.stringify(msg));
-        input.value = "";
+      const text = input.value.trim();
+      if (!text) return;
+
+      if (!dataChannel || dataChannel.readyState !== "open") {
+        alert("Open a direct P2P channel first.");
+        return;
+      }
+
+      const payload = {
+        type: "chat",
+        from: peerId,
+        to: connectedPeer,
+        payload: text,
+        timestamp: Date.now(),
+        ttl: 8
+      };
+
+      dataChannel.send(JSON.stringify(payload));
+      addMessage(peerId, text, "local");
+      input.value = "";
     }
 
-    // Enter key support
-    input.addEventListener("keypress", function(e) {
-        if (e.key === "Enter") {
-            sendMessage();
-        }
+    function closePeerConnection() {
+      if (dataChannel) {
+        try { dataChannel.close(); } catch (_) {}
+      }
+      if (pc) {
+        try { pc.close(); } catch (_) {}
+      }
+      dataChannel = null;
+      pc = null;
+      connectedPeer = "";
+      channelStatus.textContent = "No direct channel";
+      channelStatus.className = "status-indicator disconnected";
+    }
+
+    function addMessage(sender, text, kind) {
+      const el = document.createElement("div");
+      el.className = `message ${kind}`;
+      el.innerHTML = `
+        <div class="message-time">[${new Date().toLocaleTimeString()}]</div>
+        <div class="message-sender">${escapeHtml(sender)}</div>
+        <div class="message-content">${escapeHtml(text)}</div>
+      `;
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function addSystemMessage(text) {
+      const el = document.createElement("div");
+      el.className = "message system";
+      el.innerHTML = `
+        <div class="message-time">[SYSTEM]</div>
+        <div class="message-content">${escapeHtml(text)}</div>
+      `;
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") sendMessage();
     });
 
-    // Add system messages
-    function addSystemMessage(text) {
-        const el = document.createElement("div");
-        el.className = "message";
-        el.style.borderLeftColor = "#4ecdc4";
-        el.innerHTML = `
-            <div class="message-time">[SYSTEM]</div>
-            <div class="message-content" style="color: #4ecdc4; font-style: italic;">${text}</div>
-        `;
-        messages.appendChild(el);
-        messages.scrollTop = messages.scrollHeight;
-    }
+    renderPeerStatus();
+    renderPeers();
+    addSystemMessage("P2P Mesh v2 loaded. Set a peer ID, connect signaling, then open a direct peer channel.");
   </script>
 </body>
 </html>
