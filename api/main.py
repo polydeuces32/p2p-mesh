@@ -1,15 +1,12 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import json
 import time
-import asyncio
-from typing import List
+from typing import Any, Dict, Optional
 
-app = FastAPI(title="P2P Mesh API")
+app = FastAPI(title="P2P Mesh Signaling API", version="0.2.0")
 
-# CORS middleware for web access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,88 +15,187 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Store active connections
-clients: List[WebSocket] = []
-user_sessions = {}
+# peer_id -> websocket
+peer_sessions: Dict[str, WebSocket] = {}
+# websocket -> peer_id
+socket_peers: Dict[WebSocket, str] = {}
 
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: List[WebSocket] = []
+SIGNAL_TYPES = {"offer", "answer", "ice-candidate"}
 
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
 
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+def safe_json(raw: str) -> Optional[Dict[str, Any]]:
+    try:
+        payload = json.loads(raw)
+        if isinstance(payload, dict):
+            return payload
+        return None
+    except json.JSONDecodeError:
+        return None
 
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
 
-    async def broadcast(self, message: str):
-        for connection in self.active_connections:
-            try:
-                await connection.send_text(message)
-            except:
-                # Remove disconnected clients
-                if connection in self.active_connections:
-                    self.active_connections.remove(connection)
+async def send_json(websocket: WebSocket, payload: Dict[str, Any]) -> None:
+    await websocket.send_text(json.dumps(payload))
 
-manager = ConnectionManager()
+
+async def broadcast_presence() -> None:
+    peers = sorted(peer_sessions.keys())
+    message = {
+        "type": "presence",
+        "peers": peers,
+        "connection_count": len(peers),
+        "timestamp": time.time(),
+    }
+
+    dead = []
+    for peer_id, websocket in peer_sessions.items():
+        try:
+            await send_json(websocket, message)
+        except Exception:
+            dead.append(peer_id)
+
+    for peer_id in dead:
+        websocket = peer_sessions.pop(peer_id, None)
+        if websocket:
+            socket_peers.pop(websocket, None)
+
+
+async def register_peer(websocket: WebSocket, peer_id: str) -> None:
+    old_socket = peer_sessions.get(peer_id)
+    if old_socket and old_socket is not websocket:
+        socket_peers.pop(old_socket, None)
+        try:
+            await old_socket.close(code=4000, reason="Peer ID reconnected")
+        except Exception:
+            pass
+
+    peer_sessions[peer_id] = websocket
+    socket_peers[websocket] = peer_id
+    await send_json(
+        websocket,
+        {
+            "type": "registered",
+            "peer_id": peer_id,
+            "peers": sorted(peer_sessions.keys()),
+            "timestamp": time.time(),
+        },
+    )
+    await broadcast_presence()
+
+
+async def unregister_peer(websocket: WebSocket) -> None:
+    peer_id = socket_peers.pop(websocket, None)
+    if peer_id:
+        peer_sessions.pop(peer_id, None)
+        await broadcast_presence()
+
+
+async def route_signal(sender_socket: WebSocket, message: Dict[str, Any]) -> None:
+    sender_id = socket_peers.get(sender_socket)
+    target_id = message.get("to")
+    signal_type = message.get("type")
+
+    if not sender_id:
+        await send_json(sender_socket, {"type": "error", "error": "peer_not_registered"})
+        return
+
+    if signal_type not in SIGNAL_TYPES:
+        await send_json(sender_socket, {"type": "error", "error": "invalid_signal_type"})
+        return
+
+    if not target_id or target_id not in peer_sessions:
+        await send_json(
+            sender_socket,
+            {
+                "type": "error",
+                "error": "target_peer_offline",
+                "to": target_id,
+            },
+        )
+        return
+
+    outbound = dict(message)
+    outbound["from"] = sender_id
+    outbound["timestamp"] = time.time()
+    await send_json(peer_sessions[target_id], outbound)
+
 
 @app.get("/")
 async def root():
-    return {"message": "P2P Mesh API", "status": "online", "connections": len(manager.active_connections)}
+    return {
+        "message": "P2P Mesh Signaling API",
+        "status": "online",
+        "mode": "webrtc-signaling",
+        "connections": len(peer_sessions),
+    }
+
 
 @app.get("/health")
 async def health():
     return {"status": "healthy", "timestamp": time.time()}
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            message = json.loads(data)
-            
-            # Store user phone number if provided
-            if 'sender_phone' in message:
-                user_sessions[message['sender_phone']] = websocket
-                print(f"User {message['sender_phone']} connected")
-            
-            # Add connection info to message
-            message['connection_count'] = len(manager.active_connections)
-            message['active_users'] = list(user_sessions.keys())
-            
-            # Broadcast to all connected peers
-            await manager.broadcast(json.dumps(message))
-            
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
-        # Remove user from sessions
-        for phone, conn in list(user_sessions.items()):
-            if conn == websocket:
-                del user_sessions[phone]
-                print(f"User {phone} disconnected")
 
 @app.get("/users")
 async def get_users():
     return {
-        "active_users": list(user_sessions.keys()),
-        "connection_count": len(manager.active_connections)
+        "active_peers": sorted(peer_sessions.keys()),
+        "connection_count": len(peer_sessions),
     }
 
-# Serve static files
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+
+    try:
+        while True:
+            raw = await websocket.receive_text()
+            message = safe_json(raw)
+            if not message:
+                await send_json(websocket, {"type": "error", "error": "invalid_json"})
+                continue
+
+            message_type = message.get("type")
+
+            if message_type == "register":
+                peer_id = str(message.get("peer_id") or message.get("phone") or "").strip()
+                if not peer_id:
+                    await send_json(websocket, {"type": "error", "error": "missing_peer_id"})
+                    continue
+                await register_peer(websocket, peer_id)
+                continue
+
+            if message_type in SIGNAL_TYPES:
+                await route_signal(websocket, message)
+                continue
+
+            if message_type == "ping":
+                await send_json(websocket, {"type": "pong", "timestamp": time.time()})
+                continue
+
+            await send_json(websocket, {"type": "error", "error": "unknown_message_type"})
+
+    except WebSocketDisconnect:
+        await unregister_peer(websocket)
+    except Exception:
+        await unregister_peer(websocket)
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+
+
 @app.get("/{path:path}")
 async def serve_static(path: str):
-    if path == "" or path == "/" or path == "index.html":
+    if path in {"", "/", "index.html"}:
         return FileResponse("public/index.html")
+
     try:
         return FileResponse(f"public/{path}")
-    except:
+    except Exception:
         return FileResponse("public/index.html")
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
