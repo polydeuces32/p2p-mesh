@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>P2P Mesh v2</title>
+  <title>P2P Mesh v3</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -48,7 +48,7 @@
     .container {
       flex: 1;
       display: grid;
-      grid-template-columns: minmax(280px, 420px) 1fr;
+      grid-template-columns: minmax(280px, 430px) 1fr;
       gap: 20px;
       padding: 20px;
       width: 100%;
@@ -56,24 +56,9 @@
       margin: 0 auto;
     }
 
-    .panel, .chat-area {
-      background: #1e1e1e;
-      border: 2px solid #4ecdc4;
-    }
-
-    .panel {
-      border-color: #ff6b35;
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .section {
-      background: #151515;
-      border: 1px solid #4ecdc4;
-      padding: 14px;
-    }
+    .panel, .chat-area { background: #1e1e1e; border: 2px solid #4ecdc4; }
+    .panel { border-color: #ff6b35; padding: 18px; display: flex; flex-direction: column; gap: 18px; }
+    .section { background: #151515; border: 1px solid #4ecdc4; padding: 14px; }
 
     .section-title {
       color: #ff6b35;
@@ -95,7 +80,7 @@
       margin-bottom: 6px;
     }
 
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 12px;
       border: 2px solid #4ecdc4;
@@ -106,10 +91,8 @@
       margin-bottom: 10px;
     }
 
-    input:focus, select:focus {
-      outline: none;
-      border-color: #ff6b35;
-    }
+    textarea { min-height: 72px; resize: vertical; font-family: monospace; font-size: 0.78rem; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #ff6b35; }
 
     .btn {
       background: #ff6b35;
@@ -126,6 +109,7 @@
     .btn:hover { background: #4ecdc4; }
     .btn.secondary { background: #4ecdc4; }
     .btn.secondary:hover { background: #ff6b35; }
+    .btn.danger { background: #ff3b30; }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
     .status-indicator {
@@ -135,101 +119,42 @@
       letter-spacing: 1px;
       font-size: 0.82rem;
       margin-top: 6px;
+      word-break: break-word;
     }
 
     .connected { background: #4ecdc4; color: #000; }
     .disconnected { background: #ff6b35; color: #000; }
 
-    .peer-list {
-      max-height: 210px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .peer-item {
-      background: #252525;
-      border-left: 4px solid #4ecdc4;
-      padding: 10px;
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .peer-id {
-      color: #fff;
-      font-weight: 800;
-      word-break: break-all;
-    }
-
-    .peer-state {
+    .fingerprint {
       color: #4ecdc4;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      font-weight: 900;
+      font-family: monospace;
+      font-size: 0.82rem;
+      word-break: break-all;
+      margin-top: 8px;
     }
 
-    .chat-area {
-      display: flex;
-      flex-direction: column;
-      min-height: 520px;
-    }
+    .peer-list { max-height: 210px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .peer-item { background: #252525; border-left: 4px solid #4ecdc4; padding: 10px; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+    .peer-id { color: #fff; font-weight: 800; word-break: break-all; }
+    .peer-state { color: #4ecdc4; font-size: 0.75rem; text-transform: uppercase; font-weight: 900; }
 
-    .messages {
-      flex: 1;
-      padding: 18px;
-      overflow-y: auto;
-      border-bottom: 2px solid #4ecdc4;
-      max-height: 600px;
-    }
-
-    .message {
-      background: #292929;
-      border-left: 4px solid #ff6b35;
-      padding: 10px;
-      margin-bottom: 12px;
-    }
-
+    .chat-area { display: flex; flex-direction: column; min-height: 520px; }
+    .messages { flex: 1; padding: 18px; overflow-y: auto; border-bottom: 2px solid #4ecdc4; max-height: 600px; }
+    .message { background: #292929; border-left: 4px solid #ff6b35; padding: 10px; margin-bottom: 12px; }
     .message.system { border-left-color: #4ecdc4; }
     .message.local { border-left-color: #ff6b35; }
     .message.remote { border-left-color: #4ecdc4; }
+    .message.invalid { border-left-color: #ff3b30; }
 
-    .message-time {
-      color: #4ecdc4;
-      font-size: 0.75rem;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .message-sender {
-      color: #ff6b35;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-top: 4px;
-    }
-
+    .message-time { color: #4ecdc4; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .message-sender { color: #ff6b35; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
     .message-content { margin-top: 6px; line-height: 1.4; }
+    .signature-state { margin-top: 6px; color: #4ecdc4; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; }
 
-    .input-area {
-      display: flex;
-      gap: 10px;
-      padding: 18px;
-      background: #252525;
-    }
-
+    .input-area { display: flex; gap: 10px; padding: 18px; background: #252525; }
     .input-area input { margin-bottom: 0; }
     .send-btn { min-width: 110px; }
-
-    .note {
-      font-size: 0.82rem;
-      color: #ddd;
-      line-height: 1.45;
-    }
-
+    .note { font-size: 0.82rem; color: #ddd; line-height: 1.45; }
     code { color: #4ecdc4; }
 
     @media (max-width: 800px) {
@@ -242,18 +167,20 @@
 <body>
   <header class="header">
     <div class="title"><span class="p2p">P2P</span> <span class="mesh">MESH</span></div>
-    <div class="subtitle">v2 WebRTC Direct Messaging</div>
+    <div class="subtitle">v3 Signed Identity + WebRTC</div>
   </header>
 
   <main class="container">
     <aside class="panel">
       <section class="section">
-        <div class="section-title">Peer Identity</div>
-        <label for="peerInput">Peer ID</label>
-        <input id="peerInput" type="text" placeholder="example: giancarlo-node-1">
-        <button class="btn" onclick="setPeerId()">Set ID</button>
-        <button class="btn secondary" onclick="generatePeerId()">Generate</button>
-        <div id="peerStatus" class="status-indicator disconnected">No peer ID set</div>
+        <div class="section-title">Cryptographic Identity</div>
+        <button class="btn" onclick="initIdentity()">Create / Load Identity</button>
+        <button class="btn secondary" onclick="exportPublicIdentity()">Export Public</button>
+        <button class="btn danger" onclick="resetIdentity()">Reset</button>
+        <div id="peerStatus" class="status-indicator disconnected">No identity loaded</div>
+        <div id="fingerprintBox" class="fingerprint"></div>
+        <label for="publicKeyBox">Public Identity</label>
+        <textarea id="publicKeyBox" readonly placeholder="Generated public identity appears here"></textarea>
       </section>
 
       <section class="section">
@@ -274,14 +201,14 @@
         <select id="targetPeer"></select>
         <button class="btn" onclick="connectToPeer()">Open P2P Channel</button>
         <div id="channelStatus" class="status-indicator disconnected">No direct channel</div>
-        <p class="note">The server only exchanges WebRTC offer, answer, and ICE messages. Chat payloads move over the browser-to-browser data channel when connected.</p>
+        <p class="note">v3 signs each chat message with your local private key. The receiver verifies the signature using your public key.</p>
       </section>
     </aside>
 
     <section class="chat-area">
       <div id="messages" class="messages"></div>
       <div class="input-area">
-        <input id="msgInput" type="text" placeholder="Type a direct peer message...">
+        <input id="msgInput" type="text" placeholder="Type a signed direct peer message...">
         <button id="sendBtn" class="btn send-btn" onclick="sendMessage()">Send</button>
       </div>
     </section>
@@ -290,16 +217,24 @@
   <script>
     let ws = null;
     let peerId = localStorage.getItem("p2p_mesh_peer_id") || "";
+    let publicJwk = null;
+    let privateJwk = null;
+    let signingKeyPair = null;
+    let remotePublicKeys = {};
     let peers = [];
     let selectedPeer = "";
     let pc = null;
     let dataChannel = null;
     let connectedPeer = "";
 
+    const STORAGE_PUBLIC = "p2p_mesh_public_jwk";
+    const STORAGE_PRIVATE = "p2p_mesh_private_jwk";
+    const STORAGE_PEER = "p2p_mesh_peer_id";
     const iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
 
-    const peerInput = document.getElementById("peerInput");
     const peerStatus = document.getElementById("peerStatus");
+    const fingerprintBox = document.getElementById("fingerprintBox");
+    const publicKeyBox = document.getElementById("publicKeyBox");
     const signalStatus = document.getElementById("signalStatus");
     const channelStatus = document.getElementById("channelStatus");
     const peerList = document.getElementById("peerList");
@@ -307,68 +242,145 @@
     const messages = document.getElementById("messages");
     const input = document.getElementById("msgInput");
 
-    if (peerId) {
-      peerInput.value = peerId;
-      renderPeerStatus();
+    async function initIdentity() {
+      publicJwk = readJson(STORAGE_PUBLIC);
+      privateJwk = readJson(STORAGE_PRIVATE);
+
+      if (!publicJwk || !privateJwk) {
+        const keyPair = await crypto.subtle.generateKey(
+          { name: "ECDSA", namedCurve: "P-256" },
+          true,
+          ["sign", "verify"]
+        );
+        publicJwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
+        privateJwk = await crypto.subtle.exportKey("jwk", keyPair.privateKey);
+        localStorage.setItem(STORAGE_PUBLIC, JSON.stringify(publicJwk));
+        localStorage.setItem(STORAGE_PRIVATE, JSON.stringify(privateJwk));
+      }
+
+      signingKeyPair = {
+        publicKey: await crypto.subtle.importKey("jwk", publicJwk, { name: "ECDSA", namedCurve: "P-256" }, true, ["verify"]),
+        privateKey: await crypto.subtle.importKey("jwk", privateJwk, { name: "ECDSA", namedCurve: "P-256" }, true, ["sign"])
+      };
+
+      peerId = `pk-${await fingerprintPublicKey(publicJwk)}`;
+      localStorage.setItem(STORAGE_PEER, peerId);
+      remotePublicKeys[peerId] = publicJwk;
+      renderIdentity();
+      addSystemMessage(`v3 identity ready: ${peerId}`);
     }
 
-    function generatePeerId() {
-      peerInput.value = `peer-${crypto.randomUUID().slice(0, 8)}`;
-      setPeerId();
+    function resetIdentity() {
+      if (!confirm("Reset local identity? This deletes your local private key.")) return;
+      localStorage.removeItem(STORAGE_PUBLIC);
+      localStorage.removeItem(STORAGE_PRIVATE);
+      localStorage.removeItem(STORAGE_PEER);
+      peerId = "";
+      publicJwk = null;
+      privateJwk = null;
+      signingKeyPair = null;
+      publicKeyBox.value = "";
+      renderIdentity();
+      addSystemMessage("Local identity reset.");
     }
 
-    function setPeerId() {
-      const value = peerInput.value.trim();
-      if (!value || value.length < 3) {
-        alert("Peer ID must be at least 3 characters.");
+    function exportPublicIdentity() {
+      if (!publicJwk || !peerId) {
+        alert("Create or load identity first.");
         return;
       }
-      peerId = value;
-      localStorage.setItem("p2p_mesh_peer_id", peerId);
-      renderPeerStatus();
-      addSystemMessage(`Peer ID set: ${peerId}`);
+      const identity = JSON.stringify({ peer_id: peerId, public_jwk: publicJwk }, null, 2);
+      publicKeyBox.value = identity;
+      navigator.clipboard?.writeText(identity).catch(() => {});
+      addSystemMessage("Public identity exported to the box and copied when supported.");
     }
 
-    function renderPeerStatus() {
-      if (peerId) {
+    function renderIdentity() {
+      if (peerId && publicJwk) {
         peerStatus.textContent = `Peer: ${peerId}`;
         peerStatus.className = "status-indicator connected";
+        fingerprintBox.textContent = `Fingerprint: ${peerId.replace("pk-", "")}`;
+        publicKeyBox.value = JSON.stringify({ peer_id: peerId, public_jwk: publicJwk }, null, 2);
       } else {
-        peerStatus.textContent = "No peer ID set";
+        peerStatus.textContent = "No identity loaded";
         peerStatus.className = "status-indicator disconnected";
+        fingerprintBox.textContent = "";
       }
+    }
+
+    async function fingerprintPublicKey(jwk) {
+      const canonical = JSON.stringify({ crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y });
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical));
+      return arrayBufferToHex(digest).slice(0, 16);
+    }
+
+    async function signPayload(payload) {
+      const body = canonicalMessage(payload);
+      const signature = await crypto.subtle.sign(
+        { name: "ECDSA", hash: "SHA-256" },
+        signingKeyPair.privateKey,
+        new TextEncoder().encode(body)
+      );
+      return arrayBufferToBase64(signature);
+    }
+
+    async function verifyPayload(payload) {
+      if (!payload.public_jwk || !payload.signature) return false;
+      const expectedPeer = `pk-${await fingerprintPublicKey(payload.public_jwk)}`;
+      if (expectedPeer !== payload.from) return false;
+
+      remotePublicKeys[payload.from] = payload.public_jwk;
+      const publicKey = await crypto.subtle.importKey(
+        "jwk",
+        payload.public_jwk,
+        { name: "ECDSA", namedCurve: "P-256" },
+        true,
+        ["verify"]
+      );
+
+      return crypto.subtle.verify(
+        { name: "ECDSA", hash: "SHA-256" },
+        publicKey,
+        base64ToArrayBuffer(payload.signature),
+        new TextEncoder().encode(canonicalMessage(payload))
+      );
+    }
+
+    function canonicalMessage(payload) {
+      return JSON.stringify({
+        type: payload.type,
+        from: payload.from,
+        to: payload.to,
+        payload: payload.payload,
+        timestamp: payload.timestamp,
+        ttl: payload.ttl,
+        nonce: payload.nonce
+      });
     }
 
     function connectSignaling() {
-      if (!peerId) {
-        alert("Set a peer ID first.");
+      if (!peerId || !signingKeyPair) {
+        alert("Create or load cryptographic identity first.");
         return;
       }
-
       if (ws && ws.readyState === WebSocket.OPEN) return;
 
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
-      ws = new WebSocket(wsUrl);
+      ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
       ws.onopen = () => {
         signalStatus.textContent = "Connected to signaling";
         signalStatus.className = "status-indicator connected";
-        sendSignal({ type: "register", peer_id: peerId });
+        sendSignal({ type: "register", peer_id: peerId, public_jwk: publicJwk });
         addSystemMessage("Connected to signaling server.");
       };
 
-      ws.onmessage = async (event) => {
-        const message = JSON.parse(event.data);
-        await handleSignal(message);
-      };
-
+      ws.onmessage = async (event) => handleSignal(JSON.parse(event.data));
       ws.onclose = () => {
         signalStatus.textContent = "Offline";
         signalStatus.className = "status-indicator disconnected";
         addSystemMessage("Disconnected from signaling server.");
       };
-
       ws.onerror = () => {
         signalStatus.textContent = "Signal error";
         signalStatus.className = "status-indicator disconnected";
@@ -396,26 +408,16 @@
           peers = (message.peers || []).filter((id) => id !== peerId);
           renderPeers();
           break;
-        case "offer":
-          await handleOffer(message);
-          break;
-        case "answer":
-          await handleAnswer(message);
-          break;
-        case "ice-candidate":
-          await handleIceCandidate(message);
-          break;
-        case "error":
-          addSystemMessage(`Signal error: ${message.error}`);
-          break;
-        default:
-          console.log("Unknown signal", message);
+        case "offer": await handleOffer(message); break;
+        case "answer": await handleAnswer(message); break;
+        case "ice-candidate": await handleIceCandidate(message); break;
+        case "error": addSystemMessage(`Signal error: ${message.error}`); break;
+        default: console.log("Unknown signal", message);
       }
     }
 
     function renderPeers() {
       targetPeer.innerHTML = "";
-
       if (!peers.length) {
         peerList.innerHTML = `<div class="peer-item"><span class="peer-id">No peers online</span></div>`;
         const option = document.createElement("option");
@@ -440,18 +442,10 @@
 
     async function connectToPeer() {
       selectedPeer = targetPeer.value;
-      if (!selectedPeer) {
-        alert("No target peer selected.");
-        return;
-      }
-      if (!ws || ws.readyState !== WebSocket.OPEN) {
-        alert("Connect signaling first.");
-        return;
-      }
-
+      if (!selectedPeer) return alert("No target peer selected.");
+      if (!ws || ws.readyState !== WebSocket.OPEN) return alert("Connect signaling first.");
       closePeerConnection();
       setupPeerConnection(selectedPeer, true);
-
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       sendSignal({ type: "offer", to: selectedPeer, sdp: offer });
@@ -461,24 +455,18 @@
     function setupPeerConnection(remotePeer, isInitiator) {
       connectedPeer = remotePeer;
       pc = new RTCPeerConnection({ iceServers });
-
       pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          sendSignal({ type: "ice-candidate", to: remotePeer, candidate: event.candidate });
-        }
+        if (event.candidate) sendSignal({ type: "ice-candidate", to: remotePeer, candidate: event.candidate });
       };
-
       pc.onconnectionstatechange = () => {
         channelStatus.textContent = `WebRTC: ${pc.connectionState}`;
         channelStatus.className = pc.connectionState === "connected" ? "status-indicator connected" : "status-indicator disconnected";
         renderPeers();
       };
-
       pc.ondatachannel = (event) => {
         dataChannel = event.channel;
         bindDataChannel(remotePeer);
       };
-
       if (isInitiator) {
         dataChannel = pc.createDataChannel("p2p-chat");
         bindDataChannel(remotePeer);
@@ -490,32 +478,40 @@
         connectedPeer = remotePeer;
         channelStatus.textContent = `Direct channel: ${remotePeer}`;
         channelStatus.className = "status-indicator connected";
+        sendIdentityHello(remotePeer);
         addSystemMessage(`Direct P2P channel open with ${remotePeer}.`);
         renderPeers();
       };
-
-      dataChannel.onmessage = (event) => {
+      dataChannel.onmessage = async (event) => {
         const message = JSON.parse(event.data);
-        addMessage(message.from || remotePeer, message.payload, "remote");
+        if (message.type === "identity-hello") {
+          remotePublicKeys[message.from] = message.public_jwk;
+          addSystemMessage(`Stored public identity for ${message.from}.`);
+          return;
+        }
+        const verified = await verifyPayload(message).catch(() => false);
+        addMessage(message.from || remotePeer, message.payload, verified ? "remote" : "invalid", verified ? "signature verified" : "signature invalid");
       };
-
       dataChannel.onclose = () => {
         channelStatus.textContent = "Direct channel closed";
         channelStatus.className = "status-indicator disconnected";
         addSystemMessage("Direct P2P channel closed.");
       };
-
       dataChannel.onerror = () => {
         channelStatus.textContent = "Direct channel error";
         channelStatus.className = "status-indicator disconnected";
       };
     }
 
+    function sendIdentityHello(remotePeer) {
+      if (!dataChannel || dataChannel.readyState !== "open") return;
+      dataChannel.send(JSON.stringify({ type: "identity-hello", from: peerId, to: remotePeer, public_jwk: publicJwk }));
+    }
+
     async function handleOffer(message) {
       const remotePeer = message.from;
       closePeerConnection();
       setupPeerConnection(remotePeer, false);
-
       await pc.setRemoteDescription(new RTCSessionDescription(message.sdp));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
@@ -531,21 +527,15 @@
 
     async function handleIceCandidate(message) {
       if (!pc || !message.candidate) return;
-      try {
-        await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
-      } catch (error) {
-        addSystemMessage("Failed to add ICE candidate.");
-      }
+      try { await pc.addIceCandidate(new RTCIceCandidate(message.candidate)); }
+      catch (_) { addSystemMessage("Failed to add ICE candidate."); }
     }
 
-    function sendMessage() {
+    async function sendMessage() {
       const text = input.value.trim();
       if (!text) return;
-
-      if (!dataChannel || dataChannel.readyState !== "open") {
-        alert("Open a direct P2P channel first.");
-        return;
-      }
+      if (!dataChannel || dataChannel.readyState !== "open") return alert("Open a direct P2P channel first.");
+      if (!signingKeyPair) return alert("Create or load identity first.");
 
       const payload = {
         type: "chat",
@@ -553,21 +543,20 @@
         to: connectedPeer,
         payload: text,
         timestamp: Date.now(),
-        ttl: 8
+        ttl: 8,
+        nonce: crypto.randomUUID(),
+        public_jwk: publicJwk
       };
+      payload.signature = await signPayload(payload);
 
       dataChannel.send(JSON.stringify(payload));
-      addMessage(peerId, text, "local");
+      addMessage(peerId, text, "local", "signed locally");
       input.value = "";
     }
 
     function closePeerConnection() {
-      if (dataChannel) {
-        try { dataChannel.close(); } catch (_) {}
-      }
-      if (pc) {
-        try { pc.close(); } catch (_) {}
-      }
+      if (dataChannel) { try { dataChannel.close(); } catch (_) {} }
+      if (pc) { try { pc.close(); } catch (_) {} }
       dataChannel = null;
       pc = null;
       connectedPeer = "";
@@ -575,13 +564,14 @@
       channelStatus.className = "status-indicator disconnected";
     }
 
-    function addMessage(sender, text, kind) {
+    function addMessage(sender, text, kind, signatureState = "") {
       const el = document.createElement("div");
       el.className = `message ${kind}`;
       el.innerHTML = `
         <div class="message-time">[${new Date().toLocaleTimeString()}]</div>
         <div class="message-sender">${escapeHtml(sender)}</div>
         <div class="message-content">${escapeHtml(text)}</div>
+        ${signatureState ? `<div class="signature-state">${escapeHtml(signatureState)}</div>` : ""}
       `;
       messages.appendChild(el);
       messages.scrollTop = messages.scrollHeight;
@@ -590,12 +580,31 @@
     function addSystemMessage(text) {
       const el = document.createElement("div");
       el.className = "message system";
-      el.innerHTML = `
-        <div class="message-time">[SYSTEM]</div>
-        <div class="message-content">${escapeHtml(text)}</div>
-      `;
+      el.innerHTML = `<div class="message-time">[SYSTEM]</div><div class="message-content">${escapeHtml(text)}</div>`;
       messages.appendChild(el);
       messages.scrollTop = messages.scrollHeight;
+    }
+
+    function readJson(key) {
+      try { return JSON.parse(localStorage.getItem(key)); } catch (_) { return null; }
+    }
+
+    function arrayBufferToHex(buffer) {
+      return [...new Uint8Array(buffer)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    function arrayBufferToBase64(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let binary = "";
+      bytes.forEach((b) => binary += String.fromCharCode(b));
+      return btoa(binary);
+    }
+
+    function base64ToArrayBuffer(base64) {
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes.buffer;
     }
 
     function escapeHtml(value) {
@@ -607,13 +616,12 @@
         .replaceAll("'", "&#039;");
     }
 
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") sendMessage();
-    });
+    input.addEventListener("keydown", (event) => { if (event.key === "Enter") sendMessage(); });
 
-    renderPeerStatus();
+    renderIdentity();
     renderPeers();
-    addSystemMessage("P2P Mesh v2 loaded. Set a peer ID, connect signaling, then open a direct peer channel.");
+    addSystemMessage("P2P Mesh v3 loaded. Create/load identity, connect signaling, then open a direct signed P2P channel.");
+    if (publicJwk && privateJwk) initIdentity();
   </script>
 </body>
 </html>
