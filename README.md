@@ -1,39 +1,46 @@
-# P2P Mesh v2
+# P2P Mesh v5.3a
 
 A decentralized-ready browser messenger using WebRTC DataChannels for direct peer-to-peer messaging and FastAPI WebSockets only for signaling.
 
-Live demo: https://p2p-mesh.vercel.app
+Live demo: https://p2p-mesh-simple.vercel.app
 
 ## Current Status
 
-P2P Mesh v2 is no longer a basic WebSocket broadcast chat. The server is now a signaling layer. Chat messages are intended to move directly between browsers over WebRTC after peers connect.
+P2P Mesh v5.3a is now a browser-based peer messaging prototype with external Render signaling, WebRTC DataChannels, cryptographic browser identity, QR pairing export, paste-based pairing import, diagnostics, and one-click imported peer connect.
 
 ## What Works Now
 
+- Vercel-hosted frontend
+- Render-hosted FastAPI signaling backend
 - WebRTC direct browser-to-browser messaging
 - FastAPI WebSocket signaling server
-- Peer ID registration
+- Browser-generated public/private key identity
+- Public identity export
+- QR pairing export
+- Paste-based pairing import
+- Imported peer storage in browser local storage
+- One-click imported peer connect
 - Live peer presence
 - Offer / answer / ICE candidate routing
 - Direct RTCDataChannel chat payloads
-- No persistent message storage
+- Diagnostics panel for WebSocket, WebRTC, ICE, DataChannel, peers, ACKs, and retry queue
+- No persistent server-side message storage
 - Mobile-responsive browser UI
 
 ## What Is Not Supported Yet
 
-- Bluetooth messaging
+- Camera QR scanning
+- Native Bluetooth messaging
 - Native iOS app
 - Native Android app
-- Multi-hop mesh forwarding
-- Public/private key identity
-- App-level end-to-end encryption
-- TURN relay fallback for strict NAT networks
+- Production TURN relay fallback for strict NAT networks
 - Production authentication
+- Audited end-to-end encryption
 
 ## Network Model
 
 ```text
-Browser A ── WebSocket signaling ── FastAPI ── WebSocket signaling ── Browser B
+Browser A ── WebSocket signaling ── Render FastAPI ── WebSocket signaling ── Browser B
 
 After negotiation:
 
@@ -51,14 +58,35 @@ The FastAPI server should exchange only signaling messages:
 
 Chat payloads should move over the direct WebRTC data channel.
 
+## Production URLs
+
+Frontend:
+
+```text
+https://p2p-mesh-simple.vercel.app
+```
+
+Signaling backend:
+
+```text
+https://p2p-mesh-signaling.onrender.com
+```
+
+WebSocket endpoint:
+
+```text
+wss://p2p-mesh-signaling.onrender.com/ws
+```
+
 ## Tech Stack
 
 - Frontend: HTML5, CSS3, JavaScript
 - Peer transport: WebRTC RTCDataChannel
 - Signaling: FastAPI WebSocket
 - Backend: Python, FastAPI, Uvicorn
-- Deployment: Vercel
-- NAT traversal: STUN only for now
+- Frontend deployment: Vercel
+- Backend deployment: Render
+- NAT traversal: STUN by default; TURN-ready configuration hook
 
 ## Local Development
 
@@ -68,7 +96,7 @@ cd p2p-mesh
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python api/main.py
+uvicorn api.main:app --host 0.0.0.0 --port 8000
 ```
 
 Open:
@@ -81,28 +109,31 @@ http://localhost:8000
 
 Use two browser windows, two browsers, or two devices.
 
-1. Open the app in both clients.
-2. Set a different Peer ID in each client.
-3. Click `Connect` on both clients.
-4. Select the other peer from the live peer list.
-5. Click `Open P2P Channel`.
-6. Send a message.
+1. Open the live app on both clients.
+2. Click `Create / Load` on both clients.
+3. Click `Wake Backend` if Render is asleep.
+4. Click `Connect` on both clients.
+5. Copy pairing payload from Device A.
+6. Paste it into `Import Pairing` on Device B.
+7. Click `Import Peer`.
+8. Click `Connect Imported`.
+9. Send a message.
 
 ## Security Notes
 
-This is an early prototype. Do not treat it as production-secure yet.
+This is still a prototype. Do not treat it as production-secure yet.
 
 Current security limitations:
 
-- Peer IDs are user-entered and not verified.
-- There is no public/private key identity yet.
-- There is no app-level message signing yet.
+- Browser keys are stored in local storage.
+- The app has message signing, but it has not been independently audited.
 - CORS is open for development.
-- STUN is configured, but TURN fallback is not.
+- STUN is configured, but production TURN fallback is not deployed yet.
+- The Render signaling server should be rate-limited before public launch.
 
 ## Bluetooth Direction
 
-This browser app does not send messages through Bluetooth devices.
+This browser app does not send messages through Bluetooth devices yet.
 
 Bluetooth mesh requires a separate native layer:
 
@@ -116,13 +147,11 @@ The browser WebRTC version should remain the internet/direct-browser transport. 
 
 ## Project Direction
 
-The strongest product path is:
-
 ```text
-v2: WebRTC direct messaging
-v3: cryptographic identity + message signing
-v4: multi-peer mesh forwarding
-v5: native Bluetooth offline mode
+v5.3a: pairing import + one-click connect
+v5.3b: camera QR scanner + auto-import
+v5.4: TURN relay + stronger mobile network traversal
+v6: native Bluetooth offline mode
 ```
 
 ## Author
