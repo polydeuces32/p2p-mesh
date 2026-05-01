@@ -1,4 +1,4 @@
-# P2P Mesh v5.3a
+# P2P Mesh v5.3b-lite
 
 A decentralized-ready browser messenger using WebRTC DataChannels for direct peer-to-peer messaging and FastAPI WebSockets only for signaling.
 
@@ -6,7 +6,7 @@ Live demo: https://p2p-mesh-simple.vercel.app
 
 ## Current Status
 
-P2P Mesh v5.3a is now a browser-based peer messaging prototype with external Render signaling, WebRTC DataChannels, cryptographic browser identity, QR pairing export, paste-based pairing import, diagnostics, and one-click imported peer connect.
+P2P Mesh v5.3b-lite is now a browser-based peer messaging prototype with external Render signaling, WebRTC DataChannels, cryptographic browser identity, QR pairing export, paste-based pairing import, safe camera QR scanning where supported, diagnostics, and one-click imported peer connect.
 
 ## What Works Now
 
@@ -18,6 +18,8 @@ P2P Mesh v5.3a is now a browser-based peer messaging prototype with external Ren
 - Public identity export
 - QR pairing export
 - Paste-based pairing import
+- Camera QR scanner using native BarcodeDetector when supported
+- Scanner fallback message when browser support is missing
 - Imported peer storage in browser local storage
 - One-click imported peer connect
 - Live peer presence
@@ -29,7 +31,7 @@ P2P Mesh v5.3a is now a browser-based peer messaging prototype with external Ren
 
 ## What Is Not Supported Yet
 
-- Camera QR scanning
+- Full iPhone/Safari QR fallback through ZXing or jsQR
 - Native Bluetooth messaging
 - Native iOS app
 - Native Android app
@@ -86,6 +88,7 @@ wss://p2p-mesh-signaling.onrender.com/ws
 - Backend: Python, FastAPI, Uvicorn
 - Frontend deployment: Vercel
 - Backend deployment: Render
+- QR scanning: native BarcodeDetector when supported
 - NAT traversal: STUN by default; TURN-ready configuration hook
 
 ## Local Development
@@ -113,11 +116,23 @@ Use two browser windows, two browsers, or two devices.
 2. Click `Create / Load` on both clients.
 3. Click `Wake Backend` if Render is asleep.
 4. Click `Connect` on both clients.
-5. Copy pairing payload from Device A.
-6. Paste it into `Import Pairing` on Device B.
-7. Click `Import Peer`.
+5. Copy pairing payload from Device A, or generate a QR code.
+6. On Device B, paste the payload into `Import Pairing`, or use `Start Scanner` if the browser supports camera QR scanning.
+7. Click `Import Peer` if using paste import.
 8. Click `Connect Imported`.
 9. Send a message.
+
+## Scanner Compatibility
+
+The v5.3b-lite scanner uses the browser-native `BarcodeDetector` API.
+
+If your browser does not support it, the app will show:
+
+```text
+Scanner unsupported. Use paste import.
+```
+
+Paste-based pairing import remains the stable fallback.
 
 ## Security Notes
 
@@ -148,8 +163,8 @@ The browser WebRTC version should remain the internet/direct-browser transport. 
 ## Project Direction
 
 ```text
-v5.3a: pairing import + one-click connect
-v5.3b: camera QR scanner + auto-import
+v5.3b-lite: safe camera QR scanner + paste fallback
+v5.3c: ZXing/jsQR scanner fallback for broader mobile compatibility
 v5.4: TURN relay + stronger mobile network traversal
 v6: native Bluetooth offline mode
 ```
