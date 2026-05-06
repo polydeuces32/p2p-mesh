@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import json
 import time
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 app = FastAPI(title="P2P Mesh Signaling API", version="0.2.0")
@@ -21,6 +22,8 @@ peer_sessions: Dict[str, WebSocket] = {}
 socket_peers: Dict[WebSocket, str] = {}
 
 SIGNAL_TYPES = {"offer", "answer", "ice-candidate"}
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+INDEX_FILE = PROJECT_ROOT / "index.html"
 
 
 def safe_json(raw: str) -> Optional[Dict[str, Any]]:
@@ -186,13 +189,12 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.get("/{path:path}")
 async def serve_static(path: str):
-    if path in {"", "/", "index.html"}:
-        return FileResponse("public/index.html")
+    requested_path = (PROJECT_ROOT / path).resolve()
 
-    try:
-        return FileResponse(f"public/{path}")
-    except Exception:
-        return FileResponse("public/index.html")
+    if requested_path.is_file() and PROJECT_ROOT in requested_path.parents:
+        return FileResponse(requested_path)
+
+    return FileResponse(INDEX_FILE)
 
 
 if __name__ == "__main__":
