@@ -8,13 +8,14 @@ struct MeshPeer: Identifiable, Equatable {
     let discoveredAt: Date
 
     var signalLabel: String {
-        switch rssi {
-        case -55...:
+        if rssi >= -55 {
             return "Strong"
-        case -75 ... -56:
-            return "Medium"
-        default:
-            return "Weak"
         }
+
+        if rssi >= -75 {
+            return "Medium"
+        }
+
+        return "Weak"
     }
 }
